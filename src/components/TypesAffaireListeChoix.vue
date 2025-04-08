@@ -6,8 +6,7 @@
                 label="choix d'un type d'affaire"
                 :items="itemsta"
                 :custom-filter="customFilter"
-            ></v-autocomplete>
-            
+            ></v-autocomplete>            
         </v-card-text>
     </v-card>
 </template>
