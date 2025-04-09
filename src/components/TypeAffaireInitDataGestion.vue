@@ -2,7 +2,16 @@
   <div v-if="props.idTypeAffaire > 0">
       <v-container>
         <v-row dense>
-          <v-col>Données initiale pour {{ datainitpour }}</v-col>
+          <v-col>
+            <span class="d-flex">
+              <span class="titreChampSaisie">Données initiale pour&nbsp;:&nbsp;</span>
+              <v-select
+                v-model="datainitpour"  
+                :items="['tous','unité','service','direction']"
+                placeholder="Données initiales pour"
+              ></v-select>                                    
+            </span>
+          </v-col>
         </v-row>
         <v-row dense v-for="(pourunite, indexpouruo) in pourunites" :key="indexpouruo" class="d-flex align-center">
           <v-col>
@@ -30,7 +39,8 @@
                         <v-expansion-panels>
                           <v-expansion-panel>
                             <v-expansion-panel-title>
-                              <span>Rôles unités&nbsp;({{ pourunite.unite.roleuo.length }})&nbsp;</span>
+                              <span>Rôles unités&nbsp;({{ pourunite.unite.roleuo.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(pourunite.unite.id)">+ unité</v-btn>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -52,13 +62,12 @@
                                   </v-col>
                                   <v-col>
                                     <v-select
-                v-model="pourunites[indexpouruo].unite.roleuo[indexroleuo].idroleuo"  
-                :items="dicoRoleUnite"
-                item-title="libelle"
-                item-value="id"
-                placeholder="Sélection du rôle"
-                return-object
-            ></v-select>                                    
+                                      v-model="pourunites[indexpouruo].unite.roleuo[indexroleuo].idroleuo"  
+                                      :items="dicoRoleUnite"
+                                      item-title="libelle"
+                                      item-value="id"
+                                      placeholder="Sélection du rôle"
+                                    ></v-select>                                    
                                   </v-col>  
                                 </v-row>  
                               </v-container>  
@@ -76,14 +85,54 @@
       </v-container>
   </div>
 
+  <v-dialog max-width="1280">
+    <template v-slot:activator="{ props: activatorProps }">
+      <div style="display: none;">
+        <v-btn
+          id="btnActiveCardChoixUniteOrg"
+          v-bind="activatorProps"
+        ></v-btn>
+      </div>
+    </template>
+
+    <template v-slot:default="isActive">
+      <v-card>
+        <v-card-actions>
+            <span class="cardTitre"><h3>Choix d'une unité organisationnelle</h3> (cliquez sur le nom pour sélectionner)</span>
+            <v-spacer></v-spacer>
+          <v-btn
+            text="Fermer"
+            variant="tonal"
+            @click="closeCardUniteOrgChoix"
+          ></v-btn>
+        </v-card-actions>
+        <v-card-text>
+            <div>
+                <Suspense>
+                    <UniteOrgChoix 
+                        uniteHorsVdL="non" 
+                        :modeChoix="'unique'"
+                        @choixUniteOrg="receptionUnitesOrg"
+                    />
+                </Suspense>
+            </div>
+       </v-card-text>
+      </v-card>
+    </template>
+  </v-dialog> 
+
 </template>
 
 <script setup>
   import { ref, watch } from 'vue'
   import { getTypeAffaireInitData, getDicoRoleUnite } from '@/axioscalls.js'
+  import UniteOrgChoix from '@/components/UniteOrgChoix.vue'
   const props = defineProps({
     idTypeAffaire: Number,
   })
+  let ctrl_load_datainitpour = false
+  let ctrl_load_pourunites = false
+  let ctrl_unitepour_id = -1
   const typeAffaireData = ref(null)
   const dicoRoleUnite = ref([])
   const datainitpour = ref('')
@@ -120,12 +169,69 @@
   watch(() => props.idTypeAffaire, (newValue, oldValue) => {
     if (newValue > 0) {
       loadTypeAffaireData(newValue)
+      ctrl_load_datainitpour = true
+      ctrl_load_pourunites = true
     }
   })
+
+  watch(() => datainitpour.value, (newValue, oldValue) => {
+    if (ctrl_load_datainitpour) {
+      ctrl_load_datainitpour = false  
+    } else {
+      //Modification
+      console.log(`datainitpour ${oldValue} -> ${newValue}`)
+    }
+  })
+
+  watch(() => pourunites.value,() => {
+    if (ctrl_load_pourunites) {
+      ctrl_load_pourunites = false  
+    } else {
+      //Modification
+      console.log('pourunites modification')
+      console.log(pourunites.value)
+    }
+  }, { deep: true })
+
+  const choixUniteRole = (idunitepour) => {
+    ctrl_unitepour_id = idunitepour
+    document.getElementById("btnActiveCardChoixUniteOrg").click() 
+  }
 
   const supprimeRoleUO = (iduopour, iduorole) => {
     console.log(`supprimeRoleUO: ${iduopour} ${iduorole}`)
     console.log(pourunites.value)
+    for (let iunite=0; iunite<pourunites.value.length; iunite++) {
+      if (pourunites.value[iunite].unite.id == iduopour) {
+        for (let iroleuo=0; iroleuo<pourunites.value[iunite].unite.roleuo.length; iroleuo++) {
+          if (pourunites.value[iunite].unite.roleuo[iroleuo].iduo == iduorole) {
+            pourunites.value[iunite].unite.roleuo.splice(iroleuo, 1)
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  const receptionUnitesOrg = (jsonData) => {
+    console.log(`Réception unité organisationnelle \njson: ${jsonData}`)
+    /*
+    const oUniteOrg = JSON.parse(jsonData)
+        idUniteOrgProprietaire.value = oUniteOrg.id
+    if (modeGestion.value == 'proprietaireGSTdelegue') {
+        titreListeDelegue.value = `Liste des employés pouvant éditer les documents, agendés, suivis des employés de l'unité organisationnelle ${oUniteOrg.description}`
+        listeDelegue4UniteOrg(oUniteOrg.id)
+    } else if (modeGestion.value == 'delegueGSTproprietaire') {
+        idUniteOrgProprietaire.value = oUniteOrg.id
+        console.log(`sauve: iduoprop:${idUniteOrgProprietaire.value} idempdeleg:${idEmployeDelegue.value}`)
+        demandeSauveDelegue4Unite(idUniteOrgProprietaire.value, idEmployeDelegue.value)
+    }
+    */
+    closeCardUniteOrgChoix()
+  }
+  const closeCardUniteOrgChoix = () => {
+    document.getElementById("btnActiveCardChoixUniteOrg").click()    
   }
 
 
