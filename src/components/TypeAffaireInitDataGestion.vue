@@ -4,7 +4,13 @@
         <v-row dense>
           <v-col>
             <span class="d-flex">
-              <span class="titreChampSaisie">Données initiale pour&nbsp;:&nbsp;</span>
+              <span>
+                <span class="titreChampSaisie">Données initiale pour&nbsp;:&nbsp;</span>
+                <span v-if="datainitpour != 'tous'">
+                  <br>
+                  <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUnitePour()">+ unité</v-btn>
+                </span>
+              </span>
               <v-select
                 v-model="datainitpour"  
                 :items="['tous','unité','service','direction']"
@@ -40,7 +46,7 @@
                           <v-expansion-panel>
                             <v-expansion-panel-title>
                               <span>Rôles unités&nbsp;({{ pourunite.unite.roleuo.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(pourunite.unite.id)">+ unité</v-btn>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id)">+ unité</v-btn>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -132,7 +138,9 @@
   })
   let ctrl_load_datainitpour = false
   let ctrl_load_pourunites = false
+  let ctrl_unitepour_index = -1
   let ctrl_unitepour_id = -1
+  let ctrl_choixunite_mode = ''
   const typeAffaireData = ref(null)
   const dicoRoleUnite = ref([])
   const datainitpour = ref('')
@@ -188,12 +196,19 @@
       ctrl_load_pourunites = false  
     } else {
       //Modification
-      console.log('pourunites modification')
       console.log(pourunites.value)
     }
   }, { deep: true })
 
-  const choixUniteRole = (idunitepour) => {
+  
+  const choixUnitePour = () => {
+    ctrl_choixunite_mode = 'pour'
+    document.getElementById("btnActiveCardChoixUniteOrg").click() 
+  }
+
+  const choixUniteRole = (indexpouruo, idunitepour) => {
+    ctrl_choixunite_mode = 'role'
+    ctrl_unitepour_index = indexpouruo
     ctrl_unitepour_id = idunitepour
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
   }
@@ -215,20 +230,81 @@
   }
 
   const receptionUnitesOrg = (jsonData) => {
-    console.log(`Réception unité organisationnelle \njson: ${jsonData}`)
-    /*
+    console.log(`Réception unité organisationnelle, mode: ${ctrl_choixunite_mode} \njson: ${jsonData}`)
     const oUniteOrg = JSON.parse(jsonData)
-        idUniteOrgProprietaire.value = oUniteOrg.id
-    if (modeGestion.value == 'proprietaireGSTdelegue') {
-        titreListeDelegue.value = `Liste des employés pouvant éditer les documents, agendés, suivis des employés de l'unité organisationnelle ${oUniteOrg.description}`
-        listeDelegue4UniteOrg(oUniteOrg.id)
-    } else if (modeGestion.value == 'delegueGSTproprietaire') {
-        idUniteOrgProprietaire.value = oUniteOrg.id
-        console.log(`sauve: iduoprop:${idUniteOrgProprietaire.value} idempdeleg:${idEmployeDelegue.value}`)
-        demandeSauveDelegue4Unite(idUniteOrgProprietaire.value, idEmployeDelegue.value)
+    const aUnitesOrg = []
+    if (Array.isArray(oUniteOrg)) {
+        aUnitesOrg = oUniteOrg    
+    } else {
+        aUnitesOrg.push(oUniteOrg)   
     }
-    */
+    for (let iretuo=0; iretuo<aUnitesOrg.length; iretuo++) {
+      console.log(aUnitesOrg[iretuo])
+      const idUnite = aUnitesOrg[iretuo].id
+      const libelleUnite = aUnitesOrg[iretuo].description
+      let btrouve = false
+      if (ctrl_choixunite_mode == 'pour') {
+        //tester si existe déjà
+        for (let i=0; i<pourunites.value.length; i++) {
+          if (pourunites.value[i].unite.id === idUnite) {
+            btrouve = true
+            break  
+          }
+        }
+        if (!btrouve) {
+          const oUnite = {
+            "unite" : {
+              "id" : idUnite,
+              "libelle" : libelleUnite,
+              "nom" : '',
+              "roleemp" : [],
+              "roleuo" : [],
+              "droiteemp" : [
+                {
+                  "idemp" : 0,
+                  "nomemp" : "Créateur",
+                  "uoemp" : "",                
+                  "bactifemp" : 1,
+                  "droitemp" : "Contrôle total",
+                  "iddroitemp" : 1,
+                }
+              ],
+              "droituo" : [],
+              "droitgrpsec" : [],
+            }
+          }
+          pourunites.value.push(oUnite)
+        }
+  
+      } else if (ctrl_choixunite_mode == 'role') {
+        //tester si existe déjà
+        const indexunitepour = ctrl_unitepour_index
+        for (let i=0; i<pourunites.value[indexunitepour].unite.roleuo.length; i++) {
+          if (pourunites.value[indexunitepour].unite.roleuo[i].iduo === idUnite) {
+            btrouve = true
+            break  
+          }
+        }
+        if (!btrouve) {
+          const oUnite = {
+            "iduo" : idUnite,
+            "nomuo" : libelleUnite,
+            "idroleuo" : 1,
+            "roleuo" : 'Participe',
+            "bactifuo" : 1,
+          }
+          pourunites.value[indexunitepour].unite.roleuo.push(oUnite)
+        }
+  
+      } else if (ctrl_choixunite_mode == 'droit') {
+        //tester si existe déjà
+  
+      }
+    }
+
     closeCardUniteOrgChoix()
+    ctrl_choixunite_mode = ''
+    console.log(pourunites.value)
   }
   const closeCardUniteOrgChoix = () => {
     document.getElementById("btnActiveCardChoixUniteOrg").click()    
