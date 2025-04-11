@@ -46,7 +46,9 @@
                           <v-expansion-panel>
                             <v-expansion-panel-title>
                               <span>Rôles unités&nbsp;({{ pourunite.unite.roleuo.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id)">+ unité</v-btn>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'unique')">+ unité</v-btn>
+                              <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'multiple')">+n unité</v-btn>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -117,7 +119,7 @@
                 <Suspense>
                     <UniteOrgChoix 
                         uniteHorsVdL="non" 
-                        :modeChoix="'unique'"
+                        :modeChoix="ctrl_choixunite_mode"
                         @choixUniteOrg="receptionUnitesOrg"
                     />
                 </Suspense>
@@ -140,7 +142,8 @@
   let ctrl_load_pourunites = false
   let ctrl_unitepour_index = -1
   let ctrl_unitepour_id = -1
-  let ctrl_choixunite_mode = ''
+  let ctrl_choixunite_concerne = ''
+  const ctrl_choixunite_mode = ref('unique')
   const typeAffaireData = ref(null)
   const dicoRoleUnite = ref([])
   const datainitpour = ref('')
@@ -202,12 +205,14 @@
 
   
   const choixUnitePour = () => {
-    ctrl_choixunite_mode = 'pour'
+    ctrl_choixunite_concerne = 'pour'
+    ctrl_choixunite_mode.value = 'unique'
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
   }
 
-  const choixUniteRole = (indexpouruo, idunitepour) => {
-    ctrl_choixunite_mode = 'role'
+  const choixUniteRole = (indexpouruo, idunitepour, mode) => {
+    ctrl_choixunite_concerne = 'role'
+    ctrl_choixunite_mode.value = mode
     ctrl_unitepour_index = indexpouruo
     ctrl_unitepour_id = idunitepour
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
@@ -230,9 +235,9 @@
   }
 
   const receptionUnitesOrg = (jsonData) => {
-    console.log(`Réception unité organisationnelle, mode: ${ctrl_choixunite_mode} \njson: ${jsonData}`)
+    console.log(`Réception unité organisationnelle, mode: ${ctrl_choixunite_concerne} \njson: ${jsonData}`)
     const oUniteOrg = JSON.parse(jsonData)
-    const aUnitesOrg = []
+    let aUnitesOrg = []
     if (Array.isArray(oUniteOrg)) {
         aUnitesOrg = oUniteOrg    
     } else {
@@ -243,7 +248,7 @@
       const idUnite = aUnitesOrg[iretuo].id
       const libelleUnite = aUnitesOrg[iretuo].description
       let btrouve = false
-      if (ctrl_choixunite_mode == 'pour') {
+      if (ctrl_choixunite_concerne == 'pour') {
         //tester si existe déjà
         for (let i=0; i<pourunites.value.length; i++) {
           if (pourunites.value[i].unite.id === idUnite) {
@@ -276,7 +281,7 @@
           pourunites.value.push(oUnite)
         }
   
-      } else if (ctrl_choixunite_mode == 'role') {
+      } else if (ctrl_choixunite_concerne == 'role') {
         //tester si existe déjà
         const indexunitepour = ctrl_unitepour_index
         for (let i=0; i<pourunites.value[indexunitepour].unite.roleuo.length; i++) {
@@ -296,14 +301,14 @@
           pourunites.value[indexunitepour].unite.roleuo.push(oUnite)
         }
   
-      } else if (ctrl_choixunite_mode == 'droit') {
+      } else if (ctrl_choixunite_concerne == 'droit') {
         //tester si existe déjà
   
       }
     }
 
     closeCardUniteOrgChoix()
-    ctrl_choixunite_mode = ''
+    ctrl_choixunite_concerne = ''
     console.log(pourunites.value)
   }
   const closeCardUniteOrgChoix = () => {
