@@ -29,9 +29,23 @@ export async function getTypeAffaireInitData(idTypeAffaire) {
 
 export async function getDicoRoleUnite(idTypeAffaire) {
     if (idTypeAffaire > 0) {
-        const urltd = `${g_devurl}/goeland/gestion_spec/affaire_datainitgestion/axios/typeaffaire_dicoroleuo.php`
+        const urldr = `${g_devurl}/goeland/gestion_spec/affaire_datainitgestion/axios/typeaffaire_dicoroleuo.php`
         const params = new URLSearchParams([['idtypeaffaire', idTypeAffaire]])
-        const response = await axios.get(urltd, { params })
+        const response = await axios.get(urldr, { params })
+            .catch(function (error) {
+                return traiteAxiosError(error)
+            })
+            return response.data
+    } else {
+        return []
+    }
+}
+
+export async function getDicoRoleEmploye(idTypeAffaire) {
+    if (idTypeAffaire > 0) {
+        const urldr = `${g_devurl}/goeland/gestion_spec/affaire_datainitgestion/axios/typeaffaire_dicoroleemp.php`
+        const params = new URLSearchParams([['idtypeaffaire', idTypeAffaire]])
+        const response = await axios.get(urldr, { params })
             .catch(function (error) {
                 return traiteAxiosError(error)
             })
@@ -50,6 +64,18 @@ export async function getUnitesOrgListe(jsonCriteres = '{}') {
         .catch(function (error) {
             return traiteAxiosError(error)
         })    
+    return response.data
+}
+
+export async function getEmployesListe(jsonCriteres) {
+    const g_pathurlemploye = '/goeland/employe/axios/'
+    const urlel = `${g_devurl}${g_pathurlemploye}employe_liste.php`
+    const params = new URLSearchParams([['jsoncriteres', jsonCriteres]])
+    //return jsonCriteres
+    const response = await axios.get(urlel, { params })
+        .catch(function (error) {
+            return traiteAxiosError(error)
+        })
     return response.data
 }
 

@@ -40,6 +40,54 @@
                       </span>
                       </v-col>  
                     </v-row>
+
+                    <!-- employés rôles-->
+                    <v-row dense>
+                      <v-col>
+                        <v-expansion-panels>
+                          <v-expansion-panel>
+                            <v-expansion-panel-title>
+                              <span>Rôles employés&nbsp;({{ pourunite.unite.roleemp.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeRole(indexpouruo, pourunite.unite.id, 'unique')">+ employé</v-btn>
+                              <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeRole(indexpouruo, pourunite.unite.id, 'multiple')">+n employés</v-btn>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
+                              <v-container>
+                                <v-row dense v-for="(roleemp, indexroleemp) in pourunite.unite.roleemp" :key="indexroleemp" class="d-flex align-center">
+                                  <v-col cols="12" md="1">
+                                    <v-tooltip text="supprimer cet employé">
+                                      <template v-slot:activator="{ props }">
+                                          <v-btn
+                                            v-bind="props"
+                                            icon="mdi-delete"
+                                            variant="text"
+                                            @click="supprimeRoleEmp(pourunite.unite.id, roleemp.idemp)"
+                                          ></v-btn>
+                                      </template>        
+                                    </v-tooltip>
+                                  </v-col>
+                                  <v-col>
+                                    {{ roleemp.nomemp }}
+                                  </v-col>
+                                  <v-col>
+                                    <v-select
+                                      v-model="pourunites[indexpouruo].unite.roleemp[indexroleemp].idroleemp"  
+                                      :items="dicoRoleEmploye"
+                                      item-title="libelle"
+                                      item-value="id"
+                                      placeholder="Sélection du rôle"
+                                    ></v-select>                                    
+                                  </v-col>  
+                                </v-row>  
+                              </v-container>  
+                            </v-expansion-panel-text>
+                          </v-expansion-panel>  
+                        </v-expansion-panels>  
+                      </v-col>  
+                    </v-row>
+
+                    <!-- unités rôles-->
                     <v-row dense>
                       <v-col>
                         <v-expansion-panels>
@@ -48,7 +96,7 @@
                               <span>Rôles unités&nbsp;({{ pourunite.unite.roleuo.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'unique')">+ unité</v-btn>
                               <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'multiple')">+n unité</v-btn>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'multiple')">+n unités</v-btn>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -83,7 +131,8 @@
                           </v-expansion-panel>  
                         </v-expansion-panels>  
                       </v-col>  
-                    </v-row>  
+                    </v-row>
+
                   </v-container>  
                 </v-expansion-panel-text>               
               </v-expansion-panel>
@@ -129,11 +178,48 @@
     </template>
   </v-dialog> 
 
+  <v-dialog max-width="1280">
+    <template v-slot:activator="{ props: activatorProps }">
+      <div style="display: none;">
+        <v-btn
+          id="btnActiveCardChoixEmploye"
+          v-bind="activatorProps"
+        ></v-btn>
+      </div>
+    </template>
+
+    <template v-slot:default="isActive">
+      <v-card>
+        <v-card-actions>
+            <span class="cardTitre"><h3>Choix d'un employé</h3> (cliquez sur le nom pour sélectionner)</span>
+            <v-spacer></v-spacer>
+          <v-btn
+            text="Fermer"
+            variant="tonal"
+            @click="closeCardEmployeChoix"
+          ></v-btn>
+        </v-card-actions>
+        <v-card-text>
+            <div>
+                <Suspense>
+                    <EmployeChoix 
+                        uniteHorsVdL="non" 
+                        :modeChoix="ctrl_choixemploye_mode"
+                        @choixEmploye="receptionEmploye"
+                    />
+                </Suspense>
+            </div>
+       </v-card-text>
+      </v-card>
+    </template>
+  </v-dialog> 
+
 </template>
 
 <script setup>
   import { ref, watch } from 'vue'
-  import { getTypeAffaireInitData, getDicoRoleUnite } from '@/axioscalls.js'
+  import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye} from '@/axioscalls.js'
+  import EmployeChoix from '@/components/EmployeChoix.vue'
   import UniteOrgChoix from '@/components/UniteOrgChoix.vue'
   const props = defineProps({
     idTypeAffaire: Number,
@@ -144,7 +230,10 @@
   let ctrl_unitepour_id = -1
   let ctrl_choixunite_concerne = ''
   const ctrl_choixunite_mode = ref('unique')
+  let ctrl_choixemploye_concerne = ''
+  const ctrl_choixemploye_mode = ref('unique')
   const typeAffaireData = ref(null)
+  const dicoRoleEmploye = ref([])
   const dicoRoleUnite = ref([])
   const datainitpour = ref('')
   const pourunites = ref([])
@@ -169,6 +258,8 @@
 
       console.log(typeAffaireData.value)
 
+      dicoRoleEmploye.value = await getDicoRoleEmploye(id)
+      console.log(dicoRoleEmploye.value)
       dicoRoleUnite.value = await getDicoRoleUnite(id)
       console.log(dicoRoleUnite.value)
 
@@ -210,12 +301,36 @@
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
   }
 
+  const choixEmployeRole = (indexpouruo, idunitepour, mode) => {
+    ctrl_choixemploye_concerne = 'role'
+    ctrl_choixemploye_mode.value = mode
+    ctrl_unitepour_index = indexpouruo
+    ctrl_unitepour_id = idunitepour
+    document.getElementById("btnActiveCardChoixEmploye").click() 
+  }
+
   const choixUniteRole = (indexpouruo, idunitepour, mode) => {
     ctrl_choixunite_concerne = 'role'
     ctrl_choixunite_mode.value = mode
     ctrl_unitepour_index = indexpouruo
     ctrl_unitepour_id = idunitepour
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
+  }
+
+  const supprimeRoleEmp = (iduopour, idemprole) => {
+    console.log(`supprimeRoleEmp: ${iduopour} ${idemprole}`)
+    console.log(pourunites.value)
+    for (let iunite=0; iunite<pourunites.value.length; iunite++) {
+      if (pourunites.value[iunite].unite.id == iduopour) {
+        for (let iroleemp=0; iroleemp<pourunites.value[iunite].unite.roleemp.length; iroleemp++) {
+          if (pourunites.value[iunite].unite.roleemp[iroleemp].idemp == idemprole) {
+            pourunites.value[iunite].unite.roleemp.splice(iroleemp, 1)
+            break;
+          }
+        }
+        break;
+      }
+    }
   }
 
   const supprimeRoleUO = (iduopour, iduorole) => {
@@ -234,6 +349,53 @@
     }
   }
 
+  const receptionEmploye = (idemp, jsonData) => {
+    console.log(`Réception employé, mode: ${ctrl_choixemploye_concerne} \njson: ${jsonData}`)
+    const oEmploye = JSON.parse(jsonData)
+    let aEmployes = []
+    if (Array.isArray(oEmploye)) {
+      aEmployes = oEmploye    
+    } else {
+      aEmployes.push(oEmploye)   
+    }
+    for (let iretemp=0; iretemp<aEmployes.length; iretemp++) {
+      const idEmploye = aEmployes[iretemp].idemploye
+      const libelleEmploye = `${aEmployes[iretemp].nom} ${aEmployes[iretemp].prenom}`
+      const bactifemp = aEmployes[iretemp].bactif
+      const uoemp = aEmployes[iretemp].unite
+      let btrouve = false
+      if (ctrl_choixemploye_concerne == 'role') {
+        //tester si existe déjà
+        const indexunitepour = ctrl_unitepour_index
+        for (let i=0; i<pourunites.value[indexunitepour].unite.roleemp.length; i++) {
+          if (pourunites.value[indexunitepour].unite.roleemp[i].idemp === idEmploye) {
+            btrouve = true
+            break  
+          }
+        }
+        if (!btrouve) {
+          const oEmploye = {
+            "idemp" : idEmploye,
+            "nomemp" : libelleEmploye,
+            "idroleemp" : 1,
+            "roleemp" : 'Participe',
+            "uoemp" : uoemp,
+            "bactifemp" : bactifemp,
+          }
+          pourunites.value[indexunitepour].unite.roleemp.push(oEmploye)
+        }  
+      } else if (ctrl_choixunite_concerne == 'droit') {
+        //tester si existe déjà
+  
+      }
+    }
+
+    closeCardEmployeChoix()
+    ctrl_choixemploye_concerne = ''
+    console.log(pourunites.value)
+  }
+ 
+
   const receptionUnitesOrg = (jsonData) => {
     console.log(`Réception unité organisationnelle, mode: ${ctrl_choixunite_concerne} \njson: ${jsonData}`)
     const oUniteOrg = JSON.parse(jsonData)
@@ -244,7 +406,6 @@
         aUnitesOrg.push(oUniteOrg)   
     }
     for (let iretuo=0; iretuo<aUnitesOrg.length; iretuo++) {
-      console.log(aUnitesOrg[iretuo])
       const idUnite = aUnitesOrg[iretuo].id
       const libelleUnite = aUnitesOrg[iretuo].description
       let btrouve = false
@@ -311,6 +472,11 @@
     ctrl_choixunite_concerne = ''
     console.log(pourunites.value)
   }
+
+  const closeCardEmployeChoix = () => {
+    document.getElementById("btnActiveCardChoixEmploye").click()    
+  }
+
   const closeCardUniteOrgChoix = () => {
     document.getElementById("btnActiveCardChoixUniteOrg").click()    
   }
