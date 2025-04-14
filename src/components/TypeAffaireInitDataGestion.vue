@@ -133,6 +133,52 @@
                       </v-col>  
                     </v-row>
 
+                    <!-- employés droits-->
+                    <v-row dense>
+                      <v-col>
+                        <v-expansion-panels>
+                          <v-expansion-panel>
+                            <v-expansion-panel-title>
+                              <span>Droits employés&nbsp;({{ pourunite.unite.droitemp.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeDroit(indexpouruo, pourunite.unite.id, 'unique')">+ employé</v-btn>
+                              <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeDroit(indexpouruo, pourunite.unite.id, 'multiple')">+n employés</v-btn>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
+                              <v-container>
+                                <v-row dense v-for="(droitemp, indexdroitemp) in pourunite.unite.droitemp" :key="indexdroitemp" class="d-flex align-center">
+                                  <v-col cols="12" md="1">
+                                    <v-tooltip text="supprimer cet employé">
+                                      <template v-slot:activator="{ props }">
+                                          <v-btn
+                                            v-bind="props"
+                                            icon="mdi-delete"
+                                            variant="text"
+                                            @click="supprimeDroitEmp(pourunite.unite.id, droitemp.idemp)"
+                                          ></v-btn>
+                                      </template>        
+                                    </v-tooltip>
+                                  </v-col>
+                                  <v-col>
+                                    {{ droitemp.nomemp }}
+                                  </v-col>
+                                  <v-col>
+                                    <v-select
+                                      v-model="pourunites[indexpouruo].unite.droitemp[indexdroitemp].iddroitemp"  
+                                      :items="dicoDroitEO"
+                                      item-title="libelle"
+                                      item-value="id"
+                                      placeholder="Sélection du droit"
+                                    ></v-select>                                    
+                                  </v-col>  
+                                </v-row>  
+                              </v-container>  
+                            </v-expansion-panel-text>
+                          </v-expansion-panel>  
+                        </v-expansion-panels>  
+                      </v-col>  
+                    </v-row>
+
                   </v-container>  
                 </v-expansion-panel-text>               
               </v-expansion-panel>
@@ -218,7 +264,7 @@
 
 <script setup>
   import { ref, watch } from 'vue'
-  import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye} from '@/axioscalls.js'
+  import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye, getDicoDroitEO} from '@/axioscalls.js'
   import EmployeChoix from '@/components/EmployeChoix.vue'
   import UniteOrgChoix from '@/components/UniteOrgChoix.vue'
   const props = defineProps({
@@ -235,6 +281,7 @@
   const typeAffaireData = ref(null)
   const dicoRoleEmploye = ref([])
   const dicoRoleUnite = ref([])
+  const dicoDroitEO = ref([])
   const datainitpour = ref('')
   const pourunites = ref([])
   const pouruniteslibelle = ref([])
@@ -262,6 +309,8 @@
       console.log(dicoRoleEmploye.value)
       dicoRoleUnite.value = await getDicoRoleUnite(id)
       console.log(dicoRoleUnite.value)
+      dicoDroitEO.value = await getDicoDroitEO()
+      console.log(dicoDroitEO.value)
 
     } else {
       typeAffaireData.value = null
@@ -317,6 +366,14 @@
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
   }
 
+  const choixEmployeDroit = (indexpouruo, idunitepour, mode) => {
+    ctrl_choixemploye_concerne = 'droit'
+    ctrl_choixemploye_mode.value = mode
+    ctrl_unitepour_index = indexpouruo
+    ctrl_unitepour_id = idunitepour
+    document.getElementById("btnActiveCardChoixEmploye").click() 
+  }
+
   const supprimeRoleEmp = (iduopour, idemprole) => {
     console.log(`supprimeRoleEmp: ${iduopour} ${idemprole}`)
     console.log(pourunites.value)
@@ -349,6 +406,22 @@
     }
   }
 
+  const supprimeDroitEmp = (iduopour, idempdroit) => {
+    console.log(`supprimeDroitEmp: ${iduopour} ${idempdroit}`)
+    console.log(pourunites.value)
+    for (let iunite=0; iunite<pourunites.value.length; iunite++) {
+      if (pourunites.value[iunite].unite.id == iduopour) {
+        for (let idroitemp=0; idroitemp<pourunites.value[iunite].unite.droitemp.length; idroitemp++) {
+          if (pourunites.value[iunite].unite.droitemp[idroitemp].idemp == idempdroit) {
+            pourunites.value[iunite].unite.droitemp.splice(idroitemp, 1)
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
   const receptionEmploye = (idemp, jsonData) => {
     console.log(`Réception employé, mode: ${ctrl_choixemploye_concerne} \njson: ${jsonData}`)
     const oEmploye = JSON.parse(jsonData)
@@ -363,10 +436,10 @@
       const libelleEmploye = `${aEmployes[iretemp].nom} ${aEmployes[iretemp].prenom}`
       const bactifemp = aEmployes[iretemp].bactif
       const uoemp = aEmployes[iretemp].unite
+      const indexunitepour = ctrl_unitepour_index
       let btrouve = false
       if (ctrl_choixemploye_concerne == 'role') {
         //tester si existe déjà
-        const indexunitepour = ctrl_unitepour_index
         for (let i=0; i<pourunites.value[indexunitepour].unite.roleemp.length; i++) {
           if (pourunites.value[indexunitepour].unite.roleemp[i].idemp === idEmploye) {
             btrouve = true
@@ -384,9 +457,25 @@
           }
           pourunites.value[indexunitepour].unite.roleemp.push(oEmploye)
         }  
-      } else if (ctrl_choixunite_concerne == 'droit') {
+      } else if (ctrl_choixemploye_concerne == 'droit') {
         //tester si existe déjà
-  
+        for (let i=0; i<pourunites.value[indexunitepour].unite.droitemp.length; i++) {
+          if (pourunites.value[indexunitepour].unite.droitemp[i].idemp === idEmploye) {
+            btrouve = true
+            break  
+          }
+        }
+        if (!btrouve) {
+          const oEmploye = {
+            "idemp" : idEmploye,
+            "nomemp" : libelleEmploye,
+            "iddroitemp" : 3,
+            "droitemp" : 'Ajout suivis et documents',
+            "uoemp" : uoemp,
+            "bactifemp" : bactifemp,
+          }
+          pourunites.value[indexunitepour].unite.droitemp.push(oEmploye)
+        }  
       }
     }
 

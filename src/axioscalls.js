@@ -55,6 +55,15 @@ export async function getDicoRoleEmploye(idTypeAffaire) {
     }
 }
 
+export async function getDicoDroitEO() {
+    const urldd = `${g_devurl}/goeland/gestion_spec/affaire_datainitgestion/axios/affaire_dicodroiteo.php`
+    const response = await axios.get(urldd)
+        .catch(function (error) {
+            return traiteAxiosError(error)
+        })
+        return response.data
+}
+
 export async function getUnitesOrgListe(jsonCriteres = '{}') {
     const g_pathurluniteorg = '/goeland/uniteorg/axios/'
     const urluol = `${g_devurl}${g_pathurluniteorg}uniteorg_liste.php`
