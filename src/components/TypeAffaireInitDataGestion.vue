@@ -179,6 +179,98 @@
                       </v-col>  
                     </v-row>
 
+                    <!-- unités droits-->
+                    <v-row dense>
+                      <v-col>
+                        <v-expansion-panels>
+                          <v-expansion-panel>
+                            <v-expansion-panel-title>
+                              <span>Droits unités&nbsp;({{ pourunite.unite.droituo.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteDroit(indexpouruo, pourunite.unite.id, 'unique')">+ unité</v-btn>
+                              <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteDroit(indexpouruo, pourunite.unite.id, 'multiple')">+n unités</v-btn>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
+                              <v-container>
+                                <v-row dense v-for="(droituo, indexdroituo) in pourunite.unite.droituo" :key="indexdroituo" class="d-flex align-center">
+                                  <v-col cols="12" md="1">
+                                    <v-tooltip text="supprimer cette unité">
+                                      <template v-slot:activator="{ props }">
+                                          <v-btn
+                                            v-bind="props"
+                                            icon="mdi-delete"
+                                            variant="text"
+                                            @click="supprimeDroitUO(pourunite.unite.id, droituo.iduo)"
+                                          ></v-btn>
+                                      </template>        
+                                    </v-tooltip>
+                                  </v-col>
+                                  <v-col>
+                                    {{ droituo.nomuo }}
+                                  </v-col>
+                                  <v-col>
+                                    <v-select
+                                      v-model="pourunites[indexpouruo].unite.droituo[indexdroituo].iddroituo"  
+                                      :items="dicoDroitEO"
+                                      item-title="libelle"
+                                      item-value="id"
+                                      placeholder="Sélection du droit"
+                                    ></v-select>                                    
+                                  </v-col>  
+                                </v-row>  
+                              </v-container>  
+                            </v-expansion-panel-text>
+                          </v-expansion-panel>  
+                        </v-expansion-panels>  
+                      </v-col>  
+                    </v-row>
+
+                    <!-- groupes sécurité droits-->
+                    <v-row dense>
+                      <v-col>
+                        <v-expansion-panels>
+                          <v-expansion-panel>
+                            <v-expansion-panel-title>
+                              <span>Droits groupes de sécurité&nbsp;({{ pourunite.unite.droitgrpsec.length }})&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixGrpSecDroit(indexpouruo, pourunite.unite.id, 'unique')">+ groupe sécurité</v-btn>
+                              <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                              <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixGrpSecDroit(indexpouruo, pourunite.unite.id, 'multiple')">+n groupes sécurité</v-btn>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
+                              <v-container>
+                                <v-row dense v-for="(droitgrpsec, indexdroitgrpsec) in pourunite.unite.droitgrpsec" :key="indexdroitgrpsec" class="d-flex align-center">
+                                  <v-col cols="12" md="1">
+                                    <v-tooltip text="supprimer ce groupe de sécurité">
+                                      <template v-slot:activator="{ props }">
+                                          <v-btn
+                                            v-bind="props"
+                                            icon="mdi-delete"
+                                            variant="text"
+                                            @click="supprimeDroitGrpSec(pourunite.unite.id, droitgrpsec.idgrpsec)"
+                                          ></v-btn>
+                                      </template>        
+                                    </v-tooltip>
+                                  </v-col>
+                                  <v-col>
+                                    {{ droitgrpsec.nomgrpsec }}
+                                  </v-col>
+                                  <v-col>
+                                    <v-select
+                                      v-model="pourunites[indexpouruo].unite.droitgrpsec[indexdroitgrpsec].iddroitgrpsec"  
+                                      :items="dicoDroitEO"
+                                      item-title="libelle"
+                                      item-value="id"
+                                      placeholder="Sélection du droit"
+                                    ></v-select>                                    
+                                  </v-col>  
+                                </v-row>  
+                              </v-container>  
+                            </v-expansion-panel-text>
+                          </v-expansion-panel>  
+                        </v-expansion-panels>  
+                      </v-col>  
+                    </v-row>
+
                   </v-container>  
                 </v-expansion-panel-text>               
               </v-expansion-panel>
@@ -260,6 +352,41 @@
     </template>
   </v-dialog> 
 
+  <v-dialog max-width="1280">
+    <template v-slot:activator="{ props: activatorProps }">
+      <div style="display: none;">
+        <v-btn
+          id="btnActiveCardChoixGroupeSecurite"
+          v-bind="activatorProps"
+        ></v-btn>
+      </div>
+    </template>
+
+    <template v-slot:default="isActive">
+      <v-card>
+        <v-card-actions>
+            <span class="cardTitre"><h3>Choix d'un groupe de sécurité</h3></span>
+            <v-spacer></v-spacer>
+          <v-btn
+            text="Fermer"
+            variant="tonal"
+            @click="closeCardGroupeSecuriteChoix"
+          ></v-btn>
+        </v-card-actions>
+        <v-card-text>
+            <div>
+                <Suspense>
+                  <GroupeSecuriteChoix 
+                      :modeChoix="ctrl_choixgrpsec_mode"
+                      @choixGroupeSecurite="receptionGroupesSecurite"
+                  />
+                </Suspense>
+            </div>
+       </v-card-text>
+      </v-card>
+    </template>
+  </v-dialog> 
+
 </template>
 
 <script setup>
@@ -267,6 +394,7 @@
   import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye, getDicoDroitEO} from '@/axioscalls.js'
   import EmployeChoix from '@/components/EmployeChoix.vue'
   import UniteOrgChoix from '@/components/UniteOrgChoix.vue'
+  import GroupeSecuriteChoix from '@/components/GroupeSecuriteChoix.vue'
   const props = defineProps({
     idTypeAffaire: Number,
   })
@@ -276,8 +404,9 @@
   let ctrl_unitepour_id = -1
   let ctrl_choixunite_concerne = ''
   const ctrl_choixunite_mode = ref('unique')
-  let ctrl_choixemploye_concerne = ''
+   let ctrl_choixemploye_concerne = ''
   const ctrl_choixemploye_mode = ref('unique')
+  const ctrl_choixgrpsec_mode = ref('unique')
   const typeAffaireData = ref(null)
   const dicoRoleEmploye = ref([])
   const dicoRoleUnite = ref([])
@@ -374,6 +503,21 @@
     document.getElementById("btnActiveCardChoixEmploye").click() 
   }
 
+  const choixUniteDroit = (indexpouruo, idunitepour, mode) => {
+    ctrl_choixunite_concerne = 'droit'
+    ctrl_choixunite_mode.value = mode
+    ctrl_unitepour_index = indexpouruo
+    ctrl_unitepour_id = idunitepour
+    document.getElementById("btnActiveCardChoixUniteOrg").click() 
+  }
+
+  const choixGrpSecDroit = (indexpouruo, idunitepour, mode) => {
+    ctrl_choixgrpsec_mode.value = mode
+    ctrl_unitepour_index = indexpouruo
+    ctrl_unitepour_id = idunitepour
+    document.getElementById("btnActiveCardChoixGroupeSecurite").click() 
+  }
+
   const supprimeRoleEmp = (iduopour, idemprole) => {
     console.log(`supprimeRoleEmp: ${iduopour} ${idemprole}`)
     console.log(pourunites.value)
@@ -420,6 +564,26 @@
         break;
       }
     }
+  }
+
+  const supprimeDroitUO = (iduopour, iduodroit) => {
+    console.log(`supprimeDroitUO: ${iduopour} ${iduodroit}`)
+    console.log(pourunites.value)
+    for (let iunite=0; iunite<pourunites.value.length; iunite++) {
+      if (pourunites.value[iunite].unite.id == iduopour) {
+        for (let idroituo=0; idroituo<pourunites.value[iunite].unite.droituo.length; idroituo++) {
+          if (pourunites.value[iunite].unite.droituo[idroituo].iduo == iduodroit) {
+            pourunites.value[iunite].unite.droituo.splice(idroituo, 1)
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  const supprimeDroitGrpSec  = (iduopour, idgrpsecdroit) => {
+    console.log(`supprimeDroitGrpSec: ${iduopour} ${idgrpsecdroit}`)
   }
 
   const receptionEmploye = (idemp, jsonData) => {
@@ -487,6 +651,7 @@
 
   const receptionUnitesOrg = (jsonData) => {
     console.log(`Réception unité organisationnelle, mode: ${ctrl_choixunite_concerne} \njson: ${jsonData}`)
+    const indexunitepour = ctrl_unitepour_index
     const oUniteOrg = JSON.parse(jsonData)
     let aUnitesOrg = []
     if (Array.isArray(oUniteOrg)) {
@@ -533,7 +698,6 @@
   
       } else if (ctrl_choixunite_concerne == 'role') {
         //tester si existe déjà
-        const indexunitepour = ctrl_unitepour_index
         for (let i=0; i<pourunites.value[indexunitepour].unite.roleuo.length; i++) {
           if (pourunites.value[indexunitepour].unite.roleuo[i].iduo === idUnite) {
             btrouve = true
@@ -553,12 +717,54 @@
   
       } else if (ctrl_choixunite_concerne == 'droit') {
         //tester si existe déjà
+        for (let i=0; i<pourunites.value[indexunitepour].unite.droituo.length; i++) {
+          if (pourunites.value[indexunitepour].unite.droituo[i].iduo === idUnite) {
+            btrouve = true
+            break  
+          }
+        }
+        if (!btrouve) {
+          const oUnite = {
+            "iduo" : idUnite,
+            "nomuo" : libelleUnite,
+            "iddroituo" : 3,
+            "droituo" : 'Ajout suivis et documents',
+            "bactifuo" : 1,
+          }
+          pourunites.value[indexunitepour].unite.droituo.push(oUnite)
+        }  
   
       }
     }
 
     closeCardUniteOrgChoix()
     ctrl_choixunite_concerne = ''
+    console.log(pourunites.value)
+  }
+
+  const receptionGroupesSecurite = (jsonData) => {
+    console.log(`Réception groupe sécurité \njson: ${jsonData}`)
+    /*
+    const aGroupesSecuriteDC = JSON.parse(jsonData)
+    for (let i=0; i<aGroupesSecuriteDC.length; i++) {
+        let bTrouve = false
+        for (let j=0; j<lesDatas.document.groupesSecuriteDroitConsultation.length; j++) {
+            if (aGroupesSecuriteDC[i].id == lesDatas.document.groupesSecuriteDroitConsultation[j].id) {
+                bTrouve= true
+                break
+            }
+        }
+        if (!bTrouve) {
+            const oGroupeSecuriteDCPlus = {
+                "id": aGroupesSecuriteDC[i].id,
+                "nom": aGroupesSecuriteDC[i].nom,
+                "description": aGroupesSecuriteDC[i].description,
+            }
+            lesDatas.document.groupesSecuriteDroitConsultation.push(oGroupeSecuriteDCPlus)
+        }
+    }
+    */
+    closeCardGroupeSecuriteChoix()
     console.log(pourunites.value)
   }
 
@@ -569,6 +775,11 @@
   const closeCardUniteOrgChoix = () => {
     document.getElementById("btnActiveCardChoixUniteOrg").click()    
   }
+
+  const closeCardGroupeSecuriteChoix = () => {
+    document.getElementById("btnActiveCardChoixGroupeSecurite").click()    
+  }
+  
 
 
 </script>

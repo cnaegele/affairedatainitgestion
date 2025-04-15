@@ -65,8 +65,8 @@ export async function getDicoDroitEO() {
 }
 
 export async function getUnitesOrgListe(jsonCriteres = '{}') {
-    const g_pathurluniteorg = '/goeland/uniteorg/axios/'
-    const urluol = `${g_devurl}${g_pathurluniteorg}uniteorg_liste.php`
+    const pathurluniteorg = '/goeland/uniteorg/axios/'
+    const urluol = `${g_devurl}${pathurluniteorg}uniteorg_liste.php`
     const params = new URLSearchParams([['jsoncriteres', jsonCriteres]])
     //return jsonCriteres
     const response = await axios.get(urluol, { params })
@@ -77,14 +77,27 @@ export async function getUnitesOrgListe(jsonCriteres = '{}') {
 }
 
 export async function getEmployesListe(jsonCriteres) {
-    const g_pathurlemploye = '/goeland/employe/axios/'
-    const urlel = `${g_devurl}${g_pathurlemploye}employe_liste.php`
+    const pathurlemploye = '/goeland/employe/axios/'
+    const urlel = `${g_devurl}${pathurlemploye}employe_liste.php`
     const params = new URLSearchParams([['jsoncriteres', jsonCriteres]])
     //return jsonCriteres
     const response = await axios.get(urlel, { params })
         .catch(function (error) {
             return traiteAxiosError(error)
         })
+    return response.data
+}
+
+
+export async function getGroupesSecuriteListe(jsonCriteres = '{}') {
+    const pathurlgroupesecurite = '/goeland/gestion_spec/securitegroupe/axios/'
+    const urlgsl = `${g_devurl}${pathurlgroupesecurite}securitegroupe_liste.php`
+    const params = new URLSearchParams([['jsoncriteres', jsonCriteres]])
+    //return jsonCriteres
+    const response = await axios.get(urlgsl, { params })
+        .catch(function (error) {
+            return traiteAxiosError(error)
+        })    
     return response.data
 }
 
