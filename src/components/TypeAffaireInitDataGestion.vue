@@ -387,10 +387,24 @@
     </template>
   </v-dialog> 
 
+  <v-btn
+    v-if="bModification && lesDatas.bInGroupe == 1"
+    class="floating-btn"
+    color="primary"
+    fab
+    fixed
+    bottom
+    right
+    @click="sauveData()"
+  >
+    Sauver
+  </v-btn> 
+
 </template>
 
 <script setup>
   import { ref, watch } from 'vue'
+  import { useDataStore } from '@/stores/data.js'
   import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye, getDicoDroitEO} from '@/axioscalls.js'
   import EmployeChoix from '@/components/EmployeChoix.vue'
   import UniteOrgChoix from '@/components/UniteOrgChoix.vue'
@@ -398,6 +412,8 @@
   const props = defineProps({
     idTypeAffaire: Number,
   })
+  const lesDatas = useDataStore()
+  const bModification = ref(false)
   let ctrl_load_datainitpour = false
   let ctrl_load_pourunites = false
   let ctrl_unitepour_index = -1
@@ -417,6 +433,7 @@
   
   const loadTypeAffaireData = async (id) => {
     console.log(`TypeAffaireDataGestion.vue loadTypeAffaireData id : ${id}`)
+    bModification.value = false
     if (id > 0) {
       typeAffaireData.value = await getTypeAffaireInitData(id)
       typeAffaireData.value.prmsinit.unites.forEach(item => {
@@ -459,6 +476,7 @@
       ctrl_load_datainitpour = false  
     } else {
       //Modification
+      bModification.value = true
       console.log(`datainitpour ${oldValue} -> ${newValue}`)
     }
   })
@@ -468,6 +486,7 @@
       ctrl_load_pourunites = false  
     } else {
       //Modification
+      bModification.value = true
       console.log(pourunites.value)
     }
   }, { deep: true })
@@ -584,6 +603,17 @@
 
   const supprimeDroitGrpSec  = (iduopour, idgrpsecdroit) => {
     console.log(`supprimeDroitGrpSec: ${iduopour} ${idgrpsecdroit}`)
+    for (let iunite=0; iunite<pourunites.value.length; iunite++) {
+      if (pourunites.value[iunite].unite.id == iduopour) {
+        for (let idroitgs=0; idroitgs<pourunites.value[iunite].unite.droitgrpsec.length; idroitgs++) {
+          if (pourunites.value[iunite].unite.droitgrpsec[idroitgs].idgrpsec == idgrpsecdroit) {
+            pourunites.value[iunite].unite.droitgrpsec.splice(idroitgs, 1)
+            break;
+          }
+        }
+        break;
+      }
+    }
   }
 
   const receptionEmploye = (idemp, jsonData) => {
@@ -679,7 +709,7 @@
               "nom" : '',
               "roleemp" : [],
               "roleuo" : [],
-              "droiteemp" : [
+              "droitemp" : [
                 {
                   "idemp" : 0,
                   "nomemp" : "Créateur",
@@ -694,8 +724,7 @@
             }
           }
           pourunites.value.push(oUnite)
-        }
-  
+        }  
       } else if (ctrl_choixunite_concerne == 'role') {
         //tester si existe déjà
         for (let i=0; i<pourunites.value[indexunitepour].unite.roleuo.length; i++) {
@@ -732,8 +761,7 @@
             "bactifuo" : 1,
           }
           pourunites.value[indexunitepour].unite.droituo.push(oUnite)
-        }  
-  
+        }    
       }
     }
 
@@ -744,26 +772,29 @@
 
   const receptionGroupesSecurite = (jsonData) => {
     console.log(`Réception groupe sécurité \njson: ${jsonData}`)
-    /*
-    const aGroupesSecuriteDC = JSON.parse(jsonData)
-    for (let i=0; i<aGroupesSecuriteDC.length; i++) {
-        let bTrouve = false
-        for (let j=0; j<lesDatas.document.groupesSecuriteDroitConsultation.length; j++) {
-            if (aGroupesSecuriteDC[i].id == lesDatas.document.groupesSecuriteDroitConsultation[j].id) {
-                bTrouve= true
-                break
-            }
+    const indexunitepour = ctrl_unitepour_index
+    const aGroupesSecurite = JSON.parse(jsonData)
+    for (let iretgs=0; iretgs<aGroupesSecurite.length; iretgs++) {
+      const idGrpSec = aGroupesSecurite[iretgs].id
+      const libelleGrpSec = aGroupesSecurite[iretgs].nom
+      let btrouve = false
+      for (let i=0; i<pourunites.value[indexunitepour].unite.droitgrpsec.length; i++) {
+        if (pourunites.value[indexunitepour].unite.droitgrpsec[i].idgrpsec === idGrpSec) {
+          btrouve = true
+          break  
         }
-        if (!bTrouve) {
-            const oGroupeSecuriteDCPlus = {
-                "id": aGroupesSecuriteDC[i].id,
-                "nom": aGroupesSecuriteDC[i].nom,
-                "description": aGroupesSecuriteDC[i].description,
-            }
-            lesDatas.document.groupesSecuriteDroitConsultation.push(oGroupeSecuriteDCPlus)
+      }
+      if (!btrouve) {
+        const oGroupeSec = {
+          "idgrpsec" : idGrpSec,
+          "nomgrpsec" : libelleGrpSec,
+          "iddroitgrpsec" : 3,
+          "droitgrpsec" : 'Ajout suivis et documents',
+          "bactifgrpsec" : 1,
         }
-    }
-    */
+        pourunites.value[indexunitepour].unite.droitgrpsec.push(oGroupeSec)
+      }
+    }  
     closeCardGroupeSecuriteChoix()
     console.log(pourunites.value)
   }
@@ -779,12 +810,22 @@
   const closeCardGroupeSecuriteChoix = () => {
     document.getElementById("btnActiveCardChoixGroupeSecurite").click()    
   }
-  
 
+  const sauveData = () => {
+    console.log (`datainitpour: ${datainitpour.value}`)
+    console.log (`pourunites: ${pourunites.value}`)
+    console.log (pourunites.value)
+  }
 
 </script>
 
 <style scoped>
+.floating-btn {
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+  z-index: 100;
+}
 .titreChampSaisie {
     margin-top: 8px !important;
 }</style>

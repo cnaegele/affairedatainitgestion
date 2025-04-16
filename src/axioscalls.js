@@ -4,6 +4,13 @@ if (import.meta.env.DEV) {
     g_devurl = 'https://mygolux.lausanne.ch'    
 }
 
+export async function getDataUserInfo(groupeSecurite) {
+    const urlui = `${g_devurl}/goeland/gestion_spec/g_login_f5.php`
+    const params = new URLSearchParams([['groupesecurite', groupeSecurite]])
+    const response = await axios.get(urlui, { params })
+    return response.data
+}
+
 export async function getTypesAffaireListe() {
     const urltl = `${g_devurl}/goeland/gestion_spec/affaire_datainitgestion/axios/typesaffaire_liste.php`
     const response = await axios.get(urltl)
