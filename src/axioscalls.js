@@ -108,6 +108,20 @@ export async function getGroupesSecuriteListe(jsonCriteres = '{}') {
     return response.data
 }
 
+export async function sauveData(typeAffaireData) {
+    const jdata = JSON.stringify(typeAffaireData)
+    const urlsa = `${g_devurl}/goeland/gestion_spec/affaire_datainitgestion/axios/typeaffaire_initgestion_sauve.php`
+    const response = await axios.post(urlsa, jdata, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .catch(function (error) {
+        return traiteAxiosError(error)
+    })      
+    return response.data
+}
+
 function traiteAxiosError(error) {
     if (error.response) {
         return `${error.response.data}<br>${error.response.status}<br>${error.response.headers}`    

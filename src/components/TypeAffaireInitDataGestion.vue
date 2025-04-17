@@ -13,7 +13,12 @@
               </span>
               <v-select
                 v-model="datainitpour"  
-                :items="['tous','unité','service','direction']"
+                :items="[
+                  { title: 'tous', value: 'tous' },
+                  { title: 'unité', value: 'unite' },
+                  { title: 'service', value: 'service' },
+                  { title: 'direction', value: 'direction' }
+                ]"
                 placeholder="Données initiales pour"
               ></v-select>                                    
             </span>
@@ -395,7 +400,7 @@
     fixed
     bottom
     right
-    @click="sauveData()"
+    @click="demandeSauveData()"
   >
     Sauver
   </v-btn> 
@@ -405,7 +410,7 @@
 <script setup>
   import { ref, watch } from 'vue'
   import { useDataStore } from '@/stores/data.js'
-  import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye, getDicoDroitEO} from '@/axioscalls.js'
+  import { getTypeAffaireInitData, getDicoRoleUnite, getDicoRoleEmploye, getDicoDroitEO, sauveData} from '@/axioscalls.js'
   import EmployeChoix from '@/components/EmployeChoix.vue'
   import UniteOrgChoix from '@/components/UniteOrgChoix.vue'
   import GroupeSecuriteChoix from '@/components/GroupeSecuriteChoix.vue'
@@ -477,6 +482,7 @@
     } else {
       //Modification
       bModification.value = true
+      typeAffaireData.value.prmsinit.datainit_pour = newValue
       console.log(`datainitpour ${oldValue} -> ${newValue}`)
     }
   })
@@ -491,7 +497,7 @@
     }
   }, { deep: true })
 
-  
+
   const choixUnitePour = () => {
     ctrl_choixunite_concerne = 'pour'
     ctrl_choixunite_mode.value = 'unique'
@@ -811,21 +817,22 @@
     document.getElementById("btnActiveCardChoixGroupeSecurite").click()    
   }
 
-  const sauveData = () => {
-    console.log (`datainitpour: ${datainitpour.value}`)
-    console.log (`pourunites: ${pourunites.value}`)
-    console.log (pourunites.value)
+  const demandeSauveData = async () => {
+    console.log ("demandeSauveData")
+    console.log (typeAffaireData.value)
+    const retourSauve = await sauveData(typeAffaireData.value)
+    console.log(retourSauve)
   }
-
 </script>
 
 <style scoped>
-.floating-btn {
-  position: fixed;
-  bottom: 50px;
-  right: 50px;
-  z-index: 100;
-}
-.titreChampSaisie {
-    margin-top: 8px !important;
-}</style>
+  .floating-btn {
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+    z-index: 100;
+  }
+  .titreChampSaisie {
+      margin-top: 8px !important;
+  }
+</style>
