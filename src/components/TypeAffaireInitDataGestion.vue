@@ -93,10 +93,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col :class="`bactif${roleemp.bactifemp}`" :title="roleemp.uoemp">
-                                    {{ roleemp.nomemp }}
-                                  </v-col>
-                                  <v-col>
+                                  <v-col cols="12" md="4">
                                     <v-select
                                       v-model="pourunites[indexpouruo].unite.roleemp[indexroleemp].idroleemp"  
                                       :items="dicoRoleEmploye"
@@ -105,6 +102,9 @@
                                       placeholder="Sélection du rôle"
                                     ></v-select>                                    
                                   </v-col>  
+                                  <v-col cols="12" md="7" :class="`bactif${roleemp.bactifemp}`" :title="roleemp.uoemp">
+                                    {{ roleemp.nomemp }}
+                                  </v-col>
                                 </v-row>  
                               </v-container>  
                             </v-expansion-panel-text>
@@ -143,10 +143,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col :class="`bactif${roleuo.bactifuo}`">
-                                    {{ roleuo.nomuo }}
-                                  </v-col>
-                                  <v-col>
+                                  <v-col cols="12" md="4">
                                     <v-select
                                       v-model="pourunites[indexpouruo].unite.roleuo[indexroleuo].idroleuo"  
                                       :items="dicoRoleUnite"
@@ -155,6 +152,9 @@
                                       placeholder="Sélection du rôle"
                                     ></v-select>                                    
                                   </v-col>  
+                                  <v-col cols="12" md="7" :class="`bactif${roleuo.bactifuo}`">
+                                    {{ roleuo.nomuo }}
+                                  </v-col>
                                 </v-row>  
                               </v-container>  
                             </v-expansion-panel-text>
@@ -193,10 +193,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col :class="`bactif${droitemp.bactifemp}`" :title="droitemp.uoemp">
-                                    {{ droitemp.nomemp }}
-                                  </v-col>
-                                  <v-col>
+                                  <v-col cols="12" md="4">
                                     <v-select
                                       v-model="pourunites[indexpouruo].unite.droitemp[indexdroitemp].iddroitemp"  
                                       :items="dicoDroitEO"
@@ -205,6 +202,9 @@
                                       placeholder="Sélection du droit"
                                     ></v-select>                                    
                                   </v-col>  
+                                  <v-col cols="12" md="7" :class="`bactif${droitemp.bactifemp}`" :title="droitemp.uoemp">
+                                    {{ droitemp.nomemp }}
+                                  </v-col>
                                 </v-row>  
                               </v-container>  
                             </v-expansion-panel-text>
@@ -239,10 +239,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col :class="`bactif${droituo.bactifuo}`">
-                                    {{ droituo.nomuo }}
-                                  </v-col>
-                                  <v-col>
+                                  <v-col cols="12" md="4">
                                     <v-select
                                       v-model="pourunites[indexpouruo].unite.droituo[indexdroituo].iddroituo"  
                                       :items="dicoDroitEO"
@@ -251,6 +248,9 @@
                                       placeholder="Sélection du droit"
                                     ></v-select>                                    
                                   </v-col>  
+                                  <v-col cols="12" md="7" :class="`bactif${droituo.bactifuo}`">
+                                    {{ droituo.nomuo }}
+                                  </v-col>
                                 </v-row>  
                               </v-container>  
                             </v-expansion-panel-text>
@@ -285,10 +285,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col>
-                                    {{ droitgrpsec.nomgrpsec }}
-                                  </v-col>
-                                  <v-col>
+                                  <v-col cols="12" md="4">
                                     <v-select
                                       v-model="pourunites[indexpouruo].unite.droitgrpsec[indexdroitgrpsec].iddroitgrpsec"  
                                       :items="dicoDroitEO"
@@ -297,6 +294,9 @@
                                       placeholder="Sélection du droit"
                                     ></v-select>                                    
                                   </v-col>  
+                                  <v-col cols="12" md="7">
+                                    {{ droitgrpsec.nomgrpsec }}
+                                  </v-col>
                                 </v-row>  
                               </v-container>  
                             </v-expansion-panel-text>
@@ -572,7 +572,7 @@
   const choixUniteCreateurRole = (indexpouruo, idunitepour) => {
     const oUnite = {
             "iduo" : 0,
-            "nomuo" : 'Unité du créateur',
+            "nomuo" : 'unité du créateur',
             "idroleuo" : 2,
             "roleuo" : 'Gestionnaire',
             "bactifuo" : 1,
@@ -790,7 +790,7 @@
               "droitemp" : [
                 {
                   "idemp" : 0,
-                  "nomemp" : "Créateur",
+                  "nomemp" : "créateur",
                   "uoemp" : "",                
                   "bactifemp" : 1,
                   "droitemp" : "Contrôle total",
