@@ -123,11 +123,17 @@ export async function sauveData(typeAffaireData) {
 }
 
 function traiteAxiosError(error) {
+    let msgErr = ''
     if (error.response) {
-        return `${error.response.data}<br>${error.response.status}<br>${error.response.headers}`    
+        msgErr = `${error.response.data}<br>${error.response.status}<br>${error.response.headers}`    
     } else if (error.request.responseText) {
-        return error.request.responseText
+        msgErr = error.request.responseText
     } else {
-        return error.message
+        msgErr = error.message
     }
+    const respData = {
+        "success": false,
+        "message": `ERREUR. ${msgErr}`,
+    }
+    return(respData)
 }

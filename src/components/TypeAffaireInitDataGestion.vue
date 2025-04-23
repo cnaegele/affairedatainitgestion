@@ -1,4 +1,21 @@
 <template>
+  <v-snackbar
+    color="#FFCDD2"
+    multi-line
+    location="center"
+    v-model="bSnackbar"
+    timeout="10000"
+  >
+    <div v-html="messageSnackbar"></div>
+    <template v-slot:actions>
+      <v-btn
+        text="Fermer"
+        variant="tonal"
+        @click="bSnackbar = false"
+      ></v-btn>
+    </template>
+  </v-snackbar>
+
   <div v-if="props.idTypeAffaire > 0">
       <v-container>
         <v-row dense>
@@ -430,6 +447,8 @@
     idTypeAffaire: Number,
   })
   const lesDatas = useDataStore()
+  const bSnackbar = ref(false)
+  const messageSnackbar = ref('')
   const bModification = ref(false)
   let ctrl_load_datainitpour = false
   let ctrl_load_pourunites = false
@@ -479,6 +498,12 @@
       typeAffaireData.value = null
     }
   }
+
+  watch(() => bSnackbar.value, () => {
+    if (bSnackbar.value === false) {
+      messageSnackbar.value = ''
+    }
+  })
 
   watch(() => props.idTypeAffaire, (newValue, oldValue) => {
     if (newValue > 0) {
@@ -869,6 +894,12 @@
     console.log (typeAffaireData.value)
     const retourSauve = await sauveData(typeAffaireData.value)
     console.log(retourSauve)
+    if (retourSauve.hasOwnProperty("message")) {
+      if (retourSauve.message.indexOf("ERREUR") != -1) {
+        messageSnackbar.value = retourSauve.message
+        bSnackbar.value = true
+      }
+    }
   }
 </script>
 
