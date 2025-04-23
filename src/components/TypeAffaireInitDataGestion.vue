@@ -56,6 +56,10 @@
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeRole(indexpouruo, pourunite.unite.id, 'unique')">+ employé</v-btn>
                               <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeRole(indexpouruo, pourunite.unite.id, 'multiple')">+n employés</v-btn>
+                              <span v-if="!pourunite.unite.roleemp.some(item => item.idemp === 0)">
+                                <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeCreateurRole(indexpouruo, pourunite.unite.id)">+ créateur</v-btn>
+                              </span> 
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -72,7 +76,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col>
+                                  <v-col :class="`bactif${roleemp.bactifemp}`" :title="roleemp.uoemp">
                                     {{ roleemp.nomemp }}
                                   </v-col>
                                   <v-col>
@@ -102,6 +106,10 @@
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'unique')">+ unité</v-btn>
                               <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteRole(indexpouruo, pourunite.unite.id, 'multiple')">+n unités</v-btn>
+                              <span v-if="!pourunite.unite.roleuo.some(item => item.iduo === 0)">
+                                <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixUniteCreateurRole(indexpouruo, pourunite.unite.id)">+ unité du créateur</v-btn>
+                              </span> 
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -118,7 +126,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col>
+                                  <v-col :class="`bactif${roleuo.bactifuo}`">
                                     {{ roleuo.nomuo }}
                                   </v-col>
                                   <v-col>
@@ -148,6 +156,10 @@
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeDroit(indexpouruo, pourunite.unite.id, 'unique')">+ employé</v-btn>
                               <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
                               <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeDroit(indexpouruo, pourunite.unite.id, 'multiple')">+n employés</v-btn>
+                              <span v-if="!pourunite.unite.droitemp.some(item => item.idemp === 0)">
+                                <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <v-btn size="small" rounded="xl" class="text-none" @click.stop="choixEmployeCreateurDroit(indexpouruo, pourunite.unite.id)">+ créateur</v-btn>
+                              </span> 
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                               <v-container>
@@ -164,7 +176,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col>
+                                  <v-col :class="`bactif${droitemp.bactifemp}`" :title="droitemp.uoemp">
                                     {{ droitemp.nomemp }}
                                   </v-col>
                                   <v-col>
@@ -210,7 +222,7 @@
                                       </template>        
                                     </v-tooltip>
                                   </v-col>
-                                  <v-col>
+                                  <v-col :class="`bactif${droituo.bactifuo}`">
                                     {{ droituo.nomuo }}
                                   </v-col>
                                   <v-col>
@@ -512,6 +524,18 @@
     document.getElementById("btnActiveCardChoixEmploye").click() 
   }
 
+  const choixEmployeCreateurRole = (indexpouruo, idunitepour) => {
+    const oEmploye = {
+            "idemp" : 0,
+            "nomemp" : 'créateur',
+            "idroleemp" : 5,
+            "roleemp" : 'Gestionnaire',
+            "uoemp" : '',
+            "bactifemp" : 1,
+          }
+    pourunites.value[indexpouruo].unite.roleemp.push(oEmploye)
+  }
+
   const choixUniteRole = (indexpouruo, idunitepour, mode) => {
     ctrl_choixunite_concerne = 'role'
     ctrl_choixunite_mode.value = mode
@@ -520,12 +544,35 @@
     document.getElementById("btnActiveCardChoixUniteOrg").click() 
   }
 
+  const choixUniteCreateurRole = (indexpouruo, idunitepour) => {
+    const oUnite = {
+            "iduo" : 0,
+            "nomuo" : 'Unité du créateur',
+            "idroleuo" : 2,
+            "roleuo" : 'Gestionnaire',
+            "bactifuo" : 1,
+          }
+    pourunites.value[indexpouruo].unite.roleuo.push(oUnite)
+  }
+
   const choixEmployeDroit = (indexpouruo, idunitepour, mode) => {
     ctrl_choixemploye_concerne = 'droit'
     ctrl_choixemploye_mode.value = mode
     ctrl_unitepour_index = indexpouruo
     ctrl_unitepour_id = idunitepour
     document.getElementById("btnActiveCardChoixEmploye").click() 
+  }
+
+  const choixEmployeCreateurDroit = (indexpouruo, idunitepour) => {
+    const oEmploye = {
+            "idemp" : 0,
+            "nomemp" : 'créateur',
+            "iddroitemp" : 1,
+            "droitemp" : 'Contrôle total',
+            "uoemp" : '',
+            "bactifemp" : 1,
+          }
+    pourunites.value[indexpouruo].unite.droitemp.push(oEmploye)
   }
 
   const choixUniteDroit = (indexpouruo, idunitepour, mode) => {
@@ -834,5 +881,9 @@
   }
   .titreChampSaisie {
       margin-top: 8px !important;
+  }
+  .bactif0 {
+    color: red;
+    font-style: italic;
   }
 </style>
