@@ -16,7 +16,8 @@ if ($idCaller > 0) {
     $pseudoWSEmployeSecurite = new CNWSEmployeSecurite();
     if ($pseudoWSEmployeSecurite->isInGroupe($idCaller, 'GoelandManager')) {
         $strMessage = '';
-        $pathConfigXml = '/data/dataweb/GoelandWeb/goeland/affaire2/xml/';
+        $pathConfigXmlPrmsInit = '/data/goelanddocs/Godoc/typeaffaireinit/prmsinit/';
+        $pathConfigXmlDataInit = '/data/goelanddocs/Godoc/typeaffaireinit/datainit/';
         $jsonData = file_get_contents('php://input');
         if ($jsonData == '') {die;}
         $oData = json_decode($jsonData);
@@ -51,7 +52,7 @@ if ($idCaller > 0) {
             }
         } else {
             $fileNamePrmsInit = "prmsInit$filePrmsInit.xml";
-            $sPrmsInitXml = file_get_contents("$pathConfigXml$fileNamePrmsInit");
+            $sPrmsInitXml = file_get_contents("$pathConfigXmlPrmsInit$fileNamePrmsInit");
             $debutBalise = "<DataInit>";
             $finBalise = "</DataInit>";
             $positionDebut = strpos($sPrmsInitXml, $debutBalise) + strlen($debutBalise);
@@ -75,11 +76,11 @@ if ($idCaller > 0) {
                 $sPrmsInitXml = substr_replace($sPrmsInitXml, $sDataInit, $positionDebut, $longueurContenu);
                 $bChangeFilePrmsInit = true;
                 //Ecriture du fichier $fileNamePrmsInit (création ou remplace si existe déjà)
-                $nbrBytes = file_put_contents("$pathConfigXml$fileNamePrmsInit", $sPrmsInitXml);
+                $nbrBytes = file_put_contents("$pathConfigXmlPrmsInit$fileNamePrmsInit", $sPrmsInitXml);
                 if ($nbrBytes !== false) {
-                    $strMessage .= "Ecriture du fichier $pathConfigXml$fileNamePrmsInit. $nbrBytes bytes";
+                    $strMessage .= "Ecriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit. $nbrBytes bytes";
                 } else {
-                    $strMessage .= "ERREUR lors de l'écriture du fichier $pathConfigXml$fileNamePrmsInit";
+                    $strMessage .= "ERREUR lors de l'écriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit";
                 }
             }
         }
@@ -115,7 +116,7 @@ if ($idCaller > 0) {
         foreach ($aUnites as $unite) {
             $idUO = $unite->unite->id;
             if ($fileNameDataInit == '') {
-                $fileNameDataInit = 'dataInitT' . $idTypeAffaire . 'U' . $idUO . 'xml';
+                $fileNameDataInit = 'dataInitT' . $idTypeAffaire . 'U' . $idUO . '.xml';
             }
             $sXmldataInit = '<?xml version="1.0" encoding="UTF-8"?>' . "\n<DataIni>";
             $nomAffaire = $unite->unite->nom;
@@ -201,12 +202,13 @@ if ($idCaller > 0) {
 
             $sXmldataInit .= "\n</DataIni>";
 
-            $nbrBytes = file_put_contents("$pathConfigXml$fileNameDataInit", $sXmldataInit);
+            $nbrBytes = file_put_contents("$pathConfigXmlDataInit$fileNameDataInit", $sXmldataInit);
             if ($nbrBytes !== false) {
-                $strMessage .= "\nEcriture du fichier $pathConfigXml$fileNameDataInit. $nbrBytes bytes";
+                $strMessage .= "\nEcriture du fichier $pathConfigXmlDataInit$fileNameDataInit. $nbrBytes bytes";
             } else {
-                $strMessage .= "\nERREUR lors de l'écriture du fichier $pathConfigXml$fileNameDataInit";
+                $strMessage .= "\nERREUR lors de l'écriture du fichier $pathConfigXmlDataInit$fileNameDataInit";
             }
+            $fileNameDataInit = '';
         }
         echo '{"idtypeaffaire":"' . $idTypeAffaire . '","message":"' . $strMessage . '"}';
     } else {

@@ -4,10 +4,11 @@ header("Access-Control-Allow-Origin: *");
 $idTypeAffaire = isset($_GET['idtypeaffaire'])?$_GET['idtypeaffaire']:'0';
 if (isset($_GET['idtypeaffaire'])) {
     $idTypeAffaire = $_GET['idtypeaffaire'];
-    $pathConfigXml = '/data/dataweb/GoelandWeb/goeland/affaire2/xml/';
-    $fprmsInit = $pathConfigXml . 'prmsInitT' . $idTypeAffaire . '.xml';
+    $pathConfigXmlPrmsInit = '/data/goelanddocs/Godoc/typeaffaireinit/prmsinit/';
+    $pathConfigXmlDataInit = '/data/goelanddocs/Godoc/typeaffaireinit/datainit/';
+    $fprmsInit = $pathConfigXmlPrmsInit . 'prmsInitT' . $idTypeAffaire . '.xml';
     if (!file_exists($fprmsInit)) {
-        $fprmsInit = $pathConfigXml . 'prmsInitT0.xml';
+        $fprmsInit = $pathConfigXmlPrmsInit . 'prmsInitT0.xml';
         $file_prmsinit = 'defaut';
     } else {
         $file_prmsinit = 'T' . strval($idTypeAffaire);
@@ -26,19 +27,19 @@ if (isset($_GET['idtypeaffaire'])) {
     }
 
     if ($datainit_pour == 'tous') {
-        $fdataInit = $pathConfigXml . 'dataInitT' . $idTypeAffaire . '.xml';
+        $fdataInit = $pathConfigXmlDataInit . 'dataInitT' . $idTypeAffaire . '.xml';
         if (!file_exists($fdataInit)) {
-            $fdataInit = $pathConfigXml . 'dataInitT0.xml';
+            $fdataInit = $pathConfigXmlDataInit . 'dataInitT0.xml';
             $file_datainit = 'defaut';
         } else {
             $file_datainit = 't' . strval($idTypeAffaire);
         }
         $sjsonroledroit = getFileXmldata('0', $fdataInit);
     } else {
-        $configFiles = glob($pathConfigXml . 'dataInitT' .strval($idTypeAffaire) . 'U*.xml');
+        $configFiles = glob($pathConfigXmlDataInit . 'dataInitT' .strval($idTypeAffaire) . 'U*.xml');
         $sjsonroledroit = '';
         foreach ($configFiles as $configFile) {
-            $sidUnite = str_replace('.xml', '', str_replace($pathConfigXml . 'dataInitT' .strval($idTypeAffaire) . 'U', '', $configFile));
+            $sidUnite = str_replace('.xml', '', str_replace($pathConfigXmlDataInit . 'dataInitT' .strval($idTypeAffaire) . 'U', '', $configFile));
             if ($sjsonroledroit != '') {
                 $sjsonroledroit .= ',';
             }
