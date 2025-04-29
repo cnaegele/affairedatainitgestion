@@ -24,13 +24,37 @@ if ($idCaller > 0) {
         $idTypeAffaire = $oData->prmsinit->idtypeaffaire;
         $filePrmsInit = $oData->prmsinit->file_prmsinit;
         $dataInitPour = $oData->prmsinit->datainit_pour;
+        $dbgo = new DBGoeland();
+        $dbgo->queryRetJson2("cn_TypeAffaire_data $idTypeAffaire");
+        $oTypeAffaire = json_decode($dbgo->resString);
+        $typeAffaire = $oTypeAffaire[0]->typeaffaire;
+        unset($dbgo);
+
         //gestion du fichier prmsInitTxxx.xml
         $bChangeFilePrmsInit = false;
         $fileNamePrmsInit = '';
         if ($filePrmsInit == 'defaut') {
             switch ($dataInitPour) {
                 case 'tous':
-                    //rien à changer
+                    $fileNamePrmsInit = "prmsInitT$idTypeAffaire.xml";
+                    //configuration par défaut demandée, si un fichier dédié existe, on le supprime
+                    if (file_exists("$pathConfigXmlPrmsInit$fileNamePrmsInit")) {
+                        $bChangeFilePrmsInit = true;
+                        if (unlink("$pathConfigXmlPrmsInit$fileNamePrmsInit")) {
+                            $strMessage .= "#Suppression du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit";
+                        } else {
+                            $strMessage .= "#ERREUR lors de la supression du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit";
+                        }
+                        //Si un fichier dataInitTxxxU0.xml existe, on le supprime c'est dataInitTxxx.xml qui sera utilisé
+                        $fileU0Name = "$pathConfigXmlDataInit" . "dataInitT$idTypeAffaire" . "U0.xml";
+                        if (file_exists($fileU0Name)) {
+                            if (unlink($fileU0Name)) {
+                                $strMessage .= "#Suppression du fichier $fileU0Name";
+                            } else {
+                                $strMessage .= "#ERREUR lors de la supression du fichier $fileU0Name";
+                            }
+                        }
+                    }
                     $sXml = '';
                     break;
                 case 'unite':
@@ -47,8 +71,17 @@ if ($idCaller > 0) {
                     break;
             }
             if ($sXml != '') {
+                $fileNamePrmsInit = "prmsInitT$idTypeAffaire.xml";
                 $sPrmsInitXml = $sXml;
                 $bChangeFilePrmsInit = true;
+                $sPrmsInitXml = str_replace("?>", "?>\n<!-- Type affaire : $idTypeAffaire - $typeAffaire -->", $sPrmsInitXml);
+                //Ecriture du fichier $fileNamePrmsInit (création ou remplace si existe déjà)
+                $nbrBytes = file_put_contents("$pathConfigXmlPrmsInit$fileNamePrmsInit", $sPrmsInitXml);
+                if ($nbrBytes !== false) {
+                    $strMessage .= "#Ecriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit. $nbrBytes bytes";
+                } else {
+                    $strMessage .= "#ERREUR lors de l'écriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit";
+                }
             }
         } else {
             $fileNamePrmsInit = "prmsInit$filePrmsInit.xml";
@@ -75,12 +108,13 @@ if ($idCaller > 0) {
             if (strpos($sPrmsInitXml, $sDataInit) === false) {
                 $sPrmsInitXml = substr_replace($sPrmsInitXml, $sDataInit, $positionDebut, $longueurContenu);
                 $bChangeFilePrmsInit = true;
+                $sPrmsInitXml = str_replace("?>", "?>\n<!-- Type affaire : $idTypeAffaire - $typeAffaire -->", $sPrmsInitXml);
                 //Ecriture du fichier $fileNamePrmsInit (création ou remplace si existe déjà)
                 $nbrBytes = file_put_contents("$pathConfigXmlPrmsInit$fileNamePrmsInit", $sPrmsInitXml);
                 if ($nbrBytes !== false) {
-                    $strMessage .= "Ecriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit. $nbrBytes bytes";
+                    $strMessage .= "#Ecriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit. $nbrBytes bytes";
                 } else {
-                    $strMessage .= "ERREUR lors de l'écriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit";
+                    $strMessage .= "#ERREUR lors de l'écriture du fichier $pathConfigXmlPrmsInit$fileNamePrmsInit";
                 }
             }
         }
@@ -108,17 +142,19 @@ if ($idCaller > 0) {
             if (count($aUnites) == 1 && $aUnites[0]->unite->id == 0) {
                 $fileNameDataInit = "dataInitT$idTypeAffaire.xml";
             } else {
-                $strMessage .= "\nERREUR incohérence Données initiales pour et Unités passées";
+                $strMessage .= "#ERREUR incohérence Données initiales pour et Unités passées";
                 $aUnites = array();
             }
         }
 
         foreach ($aUnites as $unite) {
             $idUO = $unite->unite->id;
+            $nomUO = $unite->unite->libelle;
             if ($fileNameDataInit == '') {
                 $fileNameDataInit = 'dataInitT' . $idTypeAffaire . 'U' . $idUO . '.xml';
             }
-            $sXmldataInit = '<?xml version="1.0" encoding="UTF-8"?>' . "\n<DataIni>";
+            $commentaire = "<!-- Type affaire : $idTypeAffaire - $typeAffaire  Pour : $dataInitPour - $nomUO -->";
+            $sXmldataInit = '<?xml version="1.0" encoding="UTF-8"?>' . "\n$commentaire\n<DataIni>";
             $nomAffaire = $unite->unite->nom;
             if ($nomAffaire !== '') {
                 $sXmldataInit .= "\n<Nom><![CDATA[$nomAffaire]]></Nom>";
@@ -204,13 +240,13 @@ if ($idCaller > 0) {
 
             $nbrBytes = file_put_contents("$pathConfigXmlDataInit$fileNameDataInit", $sXmldataInit);
             if ($nbrBytes !== false) {
-                $strMessage .= "\nEcriture du fichier $pathConfigXmlDataInit$fileNameDataInit. $nbrBytes bytes";
+                $strMessage .= "#Ecriture du fichier $pathConfigXmlDataInit$fileNameDataInit. $nbrBytes bytes";
             } else {
-                $strMessage .= "\nERREUR lors de l'écriture du fichier $pathConfigXmlDataInit$fileNameDataInit";
+                $strMessage .= "#ERREUR lors de l'écriture du fichier $pathConfigXmlDataInit$fileNameDataInit";
             }
             $fileNameDataInit = '';
         }
-        echo '{"idtypeaffaire":"' . $idTypeAffaire . '","message":"' . $strMessage . '"}';
+        echo '{"idtypeaffaire":"' . $idTypeAffaire . '","message":"' . utf8go_decode($strMessage) . '"}';
     } else {
         echo '{"message":"ERREUR GoelandManager requis"}';
     }
