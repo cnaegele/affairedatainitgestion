@@ -423,6 +423,7 @@
 
   <v-btn
     v-if="bModification && lesDatas.bInGroupe == 1"
+    :hidden="!bModification"
     class="floating-btn"
     color="primary"
     fab
@@ -470,6 +471,7 @@
   const loadTypeAffaireData = async (id) => {
     console.log(`TypeAffaireDataGestion.vue loadTypeAffaireData id : ${id}`)
     bModification.value = false
+    console.log(bModification.value)
     if (id > 0) {
       typeAffaireData.value = await getTypeAffaireInitData(id)
       typeAffaireData.value.prmsinit.unites.forEach(item => {
@@ -488,11 +490,11 @@
       console.log(typeAffaireData.value)
 
       dicoRoleEmploye.value = await getDicoRoleEmploye(id)
-      console.log(dicoRoleEmploye.value)
+      //console.log(dicoRoleEmploye.value)
       dicoRoleUnite.value = await getDicoRoleUnite(id)
-      console.log(dicoRoleUnite.value)
+      //console.log(dicoRoleUnite.value)
       dicoDroitEO.value = await getDicoDroitEO()
-      console.log(dicoDroitEO.value)
+      //console.log(dicoDroitEO.value)
 
     } else {
       typeAffaireData.value = null
@@ -898,6 +900,8 @@
       if (retourSauve.message.indexOf("ERREUR") != -1) {
         messageSnackbar.value = retourSauve.message
         bSnackbar.value = true
+      } else {
+        bModification.value = false
       }
     }
   }
