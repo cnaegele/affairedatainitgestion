@@ -55,11 +55,33 @@
                     <v-row dense>
                       <v-col>
                         <span class="d-flex">
-                        <span class="titreChampSaisie">Nom initial : </span>
-                        <v-text-field
-                            v-model="pourunites[indexpouruo].unite.nom"
-                        ></v-text-field>
-                      </span>
+                          <span class="titreChampSaisie">Nom initial: </span>
+                            <v-text-field
+                                v-model="pourunites[indexpouruo].unite.nom"
+                            ></v-text-field>
+                          </span>
+                      </v-col>  
+                      <v-col>
+                          <v-select
+                            class="ml-2 mr-4"
+                            label="Données confidentielle"
+                            :items="[
+                              { title: 'oui', value: '1' },
+                              { title: 'non', value: '0' }
+                            ]"
+                            v-model="pourunites[indexpouruo].unite.bconfidentiel"
+                          ></v-select>
+                      </v-col>  
+                      <v-col>
+                          <v-select
+                            :class="pourunites[indexpouruo].unite.bconfidentiel==='0' ? 'hidden-select' : 'ml-2 mr-4'"
+                            label="Propagation confidentialité au documents"
+                            :items="[
+                              { title: 'oui', value: '1' },
+                              { title: 'non', value: '0' }
+                            ]"
+                            v-model="pourunites[indexpouruo].unite.bpropagconfidentiel"
+                          ></v-select>
                       </v-col>  
                     </v-row>
 
@@ -920,5 +942,8 @@
   .bactif0 {
     color: red;
     font-style: italic;
+  }
+  .hidden-select {
+    display: none;
   }
 </style>
