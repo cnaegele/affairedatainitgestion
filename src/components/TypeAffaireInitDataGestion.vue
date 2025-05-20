@@ -493,7 +493,6 @@
   const loadTypeAffaireData = async (id) => {
     console.log(`TypeAffaireDataGestion.vue loadTypeAffaireData id : ${id}`)
     bModification.value = false
-    console.log(bModification.value)
     if (id > 0) {
       typeAffaireData.value = await getTypeAffaireInitData(id)
       typeAffaireData.value.prmsinit.unites.forEach(item => {
@@ -510,7 +509,6 @@
       } 
 
       console.log(typeAffaireData.value)
-
       dicoRoleEmploye.value = await getDicoRoleEmploye(id)
       //console.log(dicoRoleEmploye.value)
       dicoRoleUnite.value = await getDicoRoleUnite(id)
@@ -574,11 +572,23 @@
   }
 
   const choixEmployeCreateurRole = (indexpouruo, idunitepour) => {
+    //Normalement Gestionnaire (5), mais il faut tester que ce rôle est prévu pour ce type d'affaire
+    let idrole = 5
+    let role
+    const drole = dicoRoleEmploye.value
+    const obj5 = drole.find(obj => obj.id === idrole)
+    if (obj5) {
+      role = obj5.libelle
+    } else {
+      idrole = drole[0].id  
+      role = drole[0].libelle  
+    }
+
     const oEmploye = {
             "idemp" : 0,
             "nomemp" : 'créateur',
-            "idroleemp" : 5,
-            "roleemp" : 'Gestionnaire',
+            "idroleemp" : idrole,
+            "roleemp" : role,
             "uoemp" : '',
             "bactifemp" : 1,
           }
@@ -594,11 +604,23 @@
   }
 
   const choixUniteCreateurRole = (indexpouruo, idunitepour) => {
+      //Normalement Gestionnaire (2), mais il faut tester que ce rôle est prévu pour ce type d'affaire
+    let idrole = 2
+    let role
+    const drole = dicoRoleUnite.value
+    const obj2 = drole.find(obj => obj.id === idrole)
+    if (obj2) {
+      role = obj2.libelle
+    } else {
+      idrole = drole[0].id  
+      role = drole[0].libelle  
+    }
+
     const oUnite = {
             "iduo" : 0,
             "nomuo" : 'unité du créateur',
-            "idroleuo" : 2,
-            "roleuo" : 'Gestionnaire',
+            "idroleuo" : idrole,
+            "roleuo" : role,
             "bactifuo" : 1,
           }
     pourunites.value[indexpouruo].unite.roleuo.push(oUnite)

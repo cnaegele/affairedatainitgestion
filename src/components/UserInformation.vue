@@ -20,5 +20,5 @@
     const userInfo = ref({})
     userInfo.value = await getDataUserInfo(props.groupeSecurite)
     lesDatas.bInGroupe = userInfo.value.bingroupe
-    console.log(lesDatas.bInGroupe)
+    //console.log(lesDatas.bInGroupe)
 </script>
