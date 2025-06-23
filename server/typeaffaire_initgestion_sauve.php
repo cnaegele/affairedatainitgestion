@@ -159,6 +159,14 @@ if ($idCaller > 0) {
             if ($nomAffaire !== '') {
                 $sXmldataInit .= "\n<Nom><![CDATA[$nomAffaire]]></Nom>";
             }
+            $bConfidentiel = $unite->unite->bconfidentiel;
+            if ($bConfidentiel === '1') {
+                $sXmldataInit .= "\n<BConfidentiel>1</BConfidentiel>";
+                $bPropagConfidentiel = $unite->unite->bpropagconfidentiel;
+                if ($bPropagConfidentiel === '1') {
+                    $sXmldataInit .= "\n<BPropagConfidentiel>1</BPropagConfidentiel>";
+                }
+            }
 
             //Roles employés
             $aRolesEmployes = $unite->unite->roleemp;
@@ -183,7 +191,7 @@ if ($idCaller > 0) {
                 $idroleunite = $roleuo->idroleuo;
                 $roleName = $dicoRoleUniteById[$idroleunite];
                 if ($idunite == 0) {
-                    $sXmldataInit .= "\n<Role><IdUO>#idEmploye#</IdUO><IdRole>$idroleunite</IdRole></Role> <!-- Unité créateur / $roleName -->";
+                    $sXmldataInit .= "\n<Role><IdUO>#idUO#</IdUO><IdRole>$idroleunite</IdRole></Role> <!-- Unité créateur / $roleName -->";
                 } else {
                     $dbgo->queryRetJson2("CN_OrgUnitDataLight $idunite");
                     $oUnite = json_decode($dbgo->resString);
@@ -216,7 +224,7 @@ if ($idCaller > 0) {
                 $iddroitunite = $droituo->iddroituo;
                 $droitName = $dicoDroitById[$iddroitunite];
                 if ($idunite == 0) {
-                    $sXmldataInit .= "\n<Droit><IdUO>#idEmploye#</IdUO><IdDroit>$iddroitunite</IdDroit></Droit> <!-- Unité créateur / $droitName -->";
+                    $sXmldataInit .= "\n<Droit><IdUO>#idUO#</IdUO><IdDroit>$iddroitunite</IdDroit></Droit> <!-- Unité créateur / $droitName -->";
                 } else {
                     $dbgo->queryRetJson2("CN_OrgUnitDataLight $idunite");
                     $oUnite = json_decode($dbgo->resString);
