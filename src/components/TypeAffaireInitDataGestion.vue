@@ -326,6 +326,14 @@
                         </v-expansion-panels>  
                       </v-col>  
                     </v-row>
+                    <v-row>
+                      <v-col>
+                        <v-textarea label="xml originel" v-model="pourunites[indexpouruo].unite.txtxmlori" readonly></v-textarea>  
+                      </v-col>
+                      <v-col>
+                        <v-textarea label="xml modifié" v-model="typeAffaireData.prmsinit.unites[indexpouruo].unite.txtxmlmodif"></v-textarea>  
+                      </v-col>
+                    </v-row>
 
                   </v-container>  
                 </v-expansion-panel-text>               
@@ -479,7 +487,7 @@
   let ctrl_unitepour_id = -1
   let ctrl_choixunite_concerne = ''
   const ctrl_choixunite_mode = ref('unique')
-   let ctrl_choixemploye_concerne = ''
+  let ctrl_choixemploye_concerne = ''
   const ctrl_choixemploye_mode = ref('unique')
   const ctrl_choixgrpsec_mode = ref('unique')
   const typeAffaireData = ref(null)
@@ -489,7 +497,9 @@
   const datainitpour = ref('')
   const pourunites = ref([])
   const pouruniteslibelle = ref([])
-  
+  let ctrl_txtxmlchange_affiche = false
+  const retourSauve = ref({})
+
   const loadTypeAffaireData = async (id) => {
     console.log(`TypeAffaireDataGestion.vue loadTypeAffaireData id : ${id}`)
     bModification.value = false
@@ -500,6 +510,7 @@
           item.unite.libelle = decodeURIComponent(item.unite.libelle) 
           item.unite.nom = decodeURIComponent(item.unite.nom) 
         }
+        item.unite.txtxmlori = decodeURIComponent(item.unite.txtxmlori)
       })
 
       datainitpour.value = typeAffaireData.value.prmsinit.datainit_pour
@@ -550,9 +561,12 @@
     if (ctrl_load_pourunites) {
       ctrl_load_pourunites = false  
     } else {
-      //Modification
-      bModification.value = true
-      console.log(pourunites.value)
+      if (!ctrl_txtxmlchange_affiche) {
+        //Modification
+        bModification.value = true
+      } else {
+        ctrl_txtxmlchange_affiche = false  
+      }
     }
   }, { deep: true })
 
@@ -801,7 +815,6 @@
     ctrl_choixemploye_concerne = ''
     console.log(pourunites.value)
   }
- 
 
   const receptionUnitesOrg = (jsonData) => {
     console.log(`Réception unité organisationnelle, mode: ${ctrl_choixunite_concerne} \njson: ${jsonData}`)
@@ -937,12 +950,18 @@
 
   const demandeSauveData = async () => {
     console.log ("demandeSauveData")
-    console.log (typeAffaireData.value)
-    const retourSauve = await sauveData(typeAffaireData.value)
-    console.log(retourSauve)
-    if (retourSauve.hasOwnProperty("message")) {
-      if (retourSauve.message.indexOf("ERREUR") != -1) {
-        messageSnackbar.value = retourSauve.message
+    retourSauve.value = await sauveData(typeAffaireData.value)
+    console.log(retourSauve.value)
+    retourSauve.value.unites.forEach(unitesauve => {
+      const uniteModif = typeAffaireData.value.prmsinit.unites.find(oun => oun.unite.id === unitesauve.unite.id)
+      if (uniteModif) {
+        uniteModif.unite.txtxmlmodif = decodeURIComponent(unitesauve.unite.txtxmlmodif)
+        ctrl_txtxmlchange_affiche = true
+      }
+    })
+    if (retourSauve.value.hasOwnProperty("message")) {
+      if (retourSauve.value.message.indexOf("ERREUR") != -1) {
+        messageSnackbar.value = retourSauve.value.message
         bSnackbar.value = true
       } else {
         bModification.value = false

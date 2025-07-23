@@ -147,6 +147,7 @@ if ($idCaller > 0) {
             }
         }
 
+        $sjsontxtxmlmod = '';
         foreach ($aUnites as $unite) {
             $idUO = $unite->unite->id;
             $nomUO = $unite->unite->libelle;
@@ -246,15 +247,36 @@ if ($idCaller > 0) {
 
             $sXmldataInit .= "\n</DataIni>";
 
-            $nbrBytes = file_put_contents("$pathConfigXmlDataInit$fileNameDataInit", $sXmldataInit);
-            if ($nbrBytes !== false) {
-                $strMessage .= "#Ecriture du fichier $pathConfigXmlDataInit$fileNameDataInit. $nbrBytes bytes";
+            $sXmldataFromTxa = $unite->unite->txtxmlmodif;
+            $bXmlValid = true;
+            if ($sXmldataInit != $sXmldataFromTxa && $sXmldataFromTxa != '') {
+                //Il y a eu modification du xml directement dans le textarea, on regarde si on peur le charger
+                try {
+                    $oxml = new SimpleXMLElement($sXmldataFromTxa);
+                    $sXmldataInit = $sXmldataFromTxa;
+                } catch (Exception $e) {
+                    $bXmlValid = false;
+                }
+            }
+            if ($bXmlValid) {
+                $nbrBytes = file_put_contents("$pathConfigXmlDataInit$fileNameDataInit", $sXmldataInit);
+                if ($nbrBytes !== false) {
+                    if ($sjsontxtxmlmod != '') {
+                        $sjsontxtxmlmod .= ',';
+                    }
+                    $sjsontxtxmlmod .= '{"unite":{"id":' . $idUO . ',"txtxmlmodif":"' . rawurlencode($sXmldataInit) . '"}}';
+                    $strMessage .= "#Ecriture du fichier $pathConfigXmlDataInit$fileNameDataInit. $nbrBytes bytes";
+                } else {
+                    $strMessage .= "#ERREUR lors de l'écriture du fichier $pathConfigXmlDataInit$fileNameDataInit";
+                }
             } else {
-                $strMessage .= "#ERREUR lors de l'écriture du fichier $pathConfigXmlDataInit$fileNameDataInit";
+                $strMessage .= "#ERREUR. Le xml a été modifié dans le textarea mais il est invalide";
             }
             $fileNameDataInit = '';
         }
-        echo '{"idtypeaffaire":"' . $idTypeAffaire . '","message":"' . utf8go_decode($strMessage) . '"}';
+        $sjsontxtxmlmodif = '"unites":[' . $sjsontxtxmlmod . ']';
+
+        echo '{"idtypeaffaire":"' . $idTypeAffaire . '","message":"' . utf8go_decode($strMessage) . '",' . $sjsontxtxmlmodif . '}';
     } else {
         echo '{"message":"ERREUR GoelandManager requis"}';
     }

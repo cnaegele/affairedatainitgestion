@@ -61,7 +61,16 @@ else {
 
 function getFileXmldata($idUnite, $fdataInit) {
     $oDataIni = simplexml_load_file($fdataInit);
+    $txtXml = $oDataIni->asXML();
     $nom = $oDataIni->Nom;
+    $bConfidentiel = $oDataIni->BConfidentiel;
+    if (strval($bConfidentiel) !== '1') {
+        $bConfidentiel = '0';
+    }
+    $bPropagConfidentiel = $oDataIni->BPropagConfidentiel;
+    if (strval($bPropagConfidentiel) !== '1') {
+        $bPropagConfidentiel = '0';
+    }
 
     $dbgo = new DBGoeland();
     //Information unité concernée
@@ -180,11 +189,15 @@ function getFileXmldata($idUnite, $fdataInit) {
     unset($dbgo);
     $sjsonroledroit = '{"unite":{"id":' . $idUnite . ',"libelle":"' . rawurlencode($libelleUnite) . '"';
     $sjsonroledroit .= ',"nom":"' . rawurlencode($nom) . '"';
+    $sjsonroledroit .= ',"bconfidentiel":"' . $bConfidentiel . '"';
+    $sjsonroledroit .= ',"bpropagconfidentiel":"' . $bPropagConfidentiel . '"';
     $sjsonroledroit .= ',"roleemp":' . $sjsonRoleEmp;
     $sjsonroledroit .= ',"roleuo":' . $sjsonRoleUO ;
     $sjsonroledroit .= ',"droitemp":' . $sjsonDroitEmp;
     $sjsonroledroit .= ',"droituo":' . $sjsonDroitUO ;
     $sjsonroledroit .= ',"droitgrpsec":' . $sjsonDroitGrpSec;
+    $sjsonroledroit .= ',"txtxmlori":"' . rawurlencode($txtXml) . '"';
+    $sjsonroledroit .= ',"txtxmlmodif":""';
     $sjsonroledroit .= '}}';
     return $sjsonroledroit;
 }
